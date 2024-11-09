@@ -1,0 +1,22 @@
+// Function to handle lawyer selection and assignment
+  const handleAssignLawyer = async (lawyerId) => {
+    try {
+      setAssigning(true);
+      setAssignError(null);
+      console.log("aywer id" + lawyerId);
+      // Send a request to assign the lawyer to the case
+      const response = await axios.post("http://localhost:8000/assign-lawyer", {
+        caseId,
+        lawyerId,
+      });
+
+      // If successful, redirect to the case details page
+      if (response.status === 200) {
+        navigate(`/case-details/${username}/${caseId}`); // Redirect after successful assignment
+      }
+    } catch (error) {
+      setAssignError("Error assigning lawyer. Please try again.");
+    } finally {
+      setAssigning(false);
+    }
+  };
