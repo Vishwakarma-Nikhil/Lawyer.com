@@ -46,7 +46,7 @@ import axios from "axios";
 function Signup() {
   const [userType, setUserType] = useState("client");
   const [message, setMessage] = useState("");
-
+  const apiUrl = import.meta.env.VITE_APP_URL;
   const handleSignup = async (values) => {
     try {
       let additionalFields = null; // Use `let` to allow reassignment

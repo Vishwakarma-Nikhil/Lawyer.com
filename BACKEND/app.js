@@ -465,11 +465,9 @@ app.get("/transaction-details", async (req, res) => {
 
   // Validate required parameters
   if (!userId || !clientId || !amount) {
-    return res
-      .status(400)
-      .json({
-        message: "Missing required parameters: userId, clientId, amount",
-      });
+    return res.status(400).json({
+      message: "Missing required parameters: userId, clientId, amount",
+    });
   }
 
   try {
@@ -480,11 +478,9 @@ app.get("/transaction-details", async (req, res) => {
     );
 
     if (transactions.length === 0) {
-      return res
-        .status(404)
-        .json({
-          message: "No transactions found matching the given parameters",
-        });
+      return res.status(404).json({
+        message: "No transactions found matching the given parameters",
+      });
     }
 
     // Return the transactions data
@@ -500,7 +496,10 @@ app.use((err, req, res, next) => {
   res.status(500).send("Something broke!");
 });
 
-// Start the server
+// // Start the server
+// app.listen(8000, () => {
+//   console.log("Server is listening at port 8000");
+// });
 app.listen(8000, () => {
-  console.log("Server is listening at port 8000");
+  console.log("Server is listening on all interfaces at port 8000");
 });
