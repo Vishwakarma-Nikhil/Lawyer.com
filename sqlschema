@@ -1,0 +1,85 @@
+-- Create the database
+CREATE DATABASE IF NOT EXISTS lawyermangement;
+USE lawyermangement;
+
+-- Create the users table with necessary fields and constraints
+CREATE TABLE IF NOT EXISTS users (
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    userpassword VARCHAR(255) NOT NULL,
+    walletid VARCHAR(100) UNIQUE,
+    islawyer INT DEFAULT 0,
+    type_of_lawyer VARCHAR(100),
+    cases_lost INT DEFAULT 0,
+    cases_won INT DEFAULT 0,
+    court VARCHAR(100),
+    description TEXT,
+    dob VARCHAR(100),
+    balance DECIMAL(10, 2) DEFAULT 0.00
+);
+
+-- Trigger for automatic wallet ID generation and balance initialization
+DELIMITER //
+
+CREATE TRIGGER before_user_insert
+BEFORE INSERT ON users
+FOR EACH ROW
+BEGIN
+    DECLARE new_walletid VARCHAR(100);
+    SET new_walletid = CONCAT(NEW.username, LPAD(FLOOR(RAND() * 10000), 4, '0'), '@lawpay');
+    SET NEW.walletid = new_walletid;
+    SET NEW.balance = 1000.00;
+END //
+
+DELIMITER ;
+
+-- Create transactions table
+CREATE TABLE IF NOT EXISTS transactions (
+  transactionid INT AUTO_INCREMENT PRIMARY KEY,
+  client_id INT NOT NULL,
+  lawyer_id INT NOT NULL,
+  amount DECIMAL(10, 2) NOT NULL,
+  status VARCHAR(50) NOT NULL,  -- e.g., 'completed', 'pending', 'failed'
+  transaction_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (client_id) REFERENCES users(user_id) ON DELETE CASCADE,  -- Assuming 'users' table exists with 'user_id' as primary key
+  FOREIGN KEY (lawyer_id) REFERENCES users(user_id) ON DELETE CASCADE  -- Assuming 'users' table exists with 'user_id' as primary key
+);
+
+-- Create CASE_INY table
+CREATE TABLE IF NOT EXISTS CASE_INY (
+  caseid INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,  -- Renamed to user_id for consistency
+  casename VARCHAR(255) NOT NULL,
+  paymentamount DECIMAL(10, 2) NOT NULL,
+  paymentstatus TINYINT(1) DEFAULT 0,  -- Using TINYINT for boolean values (0 or 1)
+  casestatus VARCHAR(100),
+  casedescription TEXT,
+  casetype VARCHAR(100),
+  court VARCHAR(100),
+  lawyerassigned INT DEFAULT NULL,  -- Changed to INT to match user_id
+  transactionid INT DEFAULT NULL,  -- Changed to INT to match transactionid
+  FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,  -- Added foreign key for user_id
+  FOREIGN KEY (lawyerassigned) REFERENCES users(user_id) ON DELETE SET NULL,  -- Foreign key for lawyerassigned
+  FOREIGN KEY (transactionid) REFERENCES transactions(transactionid) ON DELETE SET NULL -- Foreign key for transactionid
+);
+
+-- Create Application table with the corrected foreign key references
+CREATE TABLE IF NOT EXISTS Application (
+  application_id INT AUTO_INCREMENT PRIMARY KEY,  -- Unique ID for the application
+  user_id INT NOT NULL,                        -- ID of the client (renamed to user_id)
+  lawyer_id INT NOT NULL,                      -- ID of the lawyer
+  caseid INT NOT NULL,                          -- Added caseid for the case linked to the application
+  status ENUM('pending', 'accepted', 'rejected') NOT NULL DEFAULT 'pending', -- Status of the application
+  FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,  -- Foreign key to the Clients table (user_id)
+  FOREIGN KEY (lawyer_id) REFERENCES users(user_id) ON DELETE CASCADE,  -- Foreign key to the Lawyers table (user_id)
+  FOREIGN KEY (caseid) REFERENCES CASE_INY(caseid) ON DELETE CASCADE -- Foreign key to CASE_INY table
+);
+
+-- Sample select queries to check data
+SELECT * FROM users;
+SELECT * FROM Application;
+SELECT * FROM CASE_INY;
+SELECT * FROM transactions;
+
+-- If you need to truncate the table
+-- TRUNCATE TABLE users; 
